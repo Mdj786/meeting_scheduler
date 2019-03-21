@@ -1,0 +1,54 @@
+
+{% load staticfiles %}
+
+<html>
+    <head>
+        <title>Scheduler</title>
+        
+        <link rel="stylesheet" href="{% static 'css/login.css' %}">
+        
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		
+
+    </head>
+<body scroll="no" style="overflow: hidden">
+
+<div class="wrapper fadeInDown">
+  <div id="formContent">
+      <div class="fadeIn first">
+
+  <h2>SIGN IN</h2>
+  </div>
+  {% if form.errors %}
+    <p style="color: red">Your Email/Phone and password didn't match. Please try again.</p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+   <input type="hidden" name="next" value="{{ next }}" />
+   {% block content %}
+    {% for field in form %}
+      <p>     	
+        {{ field.label_tag }}<br>
+        {{ field }}<br>
+        {% for error in field.errors %}
+          <p style="color: red">{{ error }}</p>
+        {% endfor %}
+        {% if field.help_text %}
+          <p><small style="color: grey">{{ field.help_text }}</small></p>
+        {% endif %}
+      </p>
+    {% endfor %}
+    {% endblock %}
+    <button type="submit" class="fadeIn fourth">Log in</button>
+
+  </form>
+  
+   </div>
+      <a href="{% url 'signup' %}">New to My Site? Sign up</a>
+</div>
+
+
+</body>
+
+

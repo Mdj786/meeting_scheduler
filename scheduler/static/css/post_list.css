@@ -1,0 +1,54 @@
+ body{
+    background-color: #eff9f9 !important;
+
+}
+
+
+
+
+table {
+    table-layout:fixed;
+    background-color: #eff9f9 !important;
+}
+table tr{
+	border: 3px double #000000;
+    background-color: #eff9f9 !important;
+}
+table th{
+
+    background-color: #eff2f2 !important;
+}
+.table{
+    background-color: #eff2f2 !important;
+}
+
+
+table td {
+    overflow:hidden;
+    text-overflow: ellipsis;
+
+    
+}
+
+.event_text{
+	width: 200px;
+	word-wrap:break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.inline{
+	display: inline;
+}
+#logout{
+	float: right;
+}
+
+.border{
+background-color:#fff;
+color:#000;
+padding:10px;
+border:3px double #81aff9;
+}
+
+

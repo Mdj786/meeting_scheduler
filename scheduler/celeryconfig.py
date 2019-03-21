@@ -1,0 +1,4 @@
+CELERY_IMPORTS = ('tasks',)
+
+
+

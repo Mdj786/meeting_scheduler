@@ -1,0 +1,42 @@
+{% load staticfiles %}
+<html>
+  <head>
+   
+            <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+    
+    		<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
+    
+    </head>
+<body>
+<div class="wrapper fadeInDown">
+  <div id="formContent">
+      <div class="fadeIn first">
+  <h2>Sign up</h2>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {% block content %}
+    
+    {% for field in form %}
+      <p>
+        {{ field.label_tag }}<br>
+        {{ field }}
+        {% if field.help_text %}
+          <small style="color: grey">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <p style="color: red">{{ error }}</p>
+        {% endfor %}
+      </p>
+    {% endfor %}
+    {% endblock %}
+    <button type="submit">Sign up</button>
+    </div>
+    </div>
+  </form>
+</body>
+</html>	
+
