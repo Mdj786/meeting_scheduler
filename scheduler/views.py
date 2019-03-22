@@ -127,7 +127,7 @@ def post(request):
         
         #node = str(request.user.email) + str(title) + str(temp)
         
-        database.child('posts').push(fire_base)
+        database.child(str(pk)).push(fire_base)
         
         #increment = increment + 1
         
@@ -218,9 +218,10 @@ def post_edit(request, pk):
             if time_check_ten == 1:
         	    SignUpTask.apply_async((pk,),eta=new_time_ten,task_id=task_id)
             
+            
             fire_base ={'user':request.user.email,'title': post.title, 'text': post.text, 'date_time': temp }
         
-            database.child('posts').push(fire_base)          	
+            database.child(str(pk)).set(fire_base)          	
             
             return redirect('post_list')
     else:
