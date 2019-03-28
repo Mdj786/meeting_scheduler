@@ -19,16 +19,6 @@ class SignUpForm(UserCreationForm):
         super(SignUpForm, self).__init__(*args, **kwargs)
         self.fields['username'].widget.attrs.update({'autofocus': ''})
         
-'''class new_post(forms.ModelForm):
-	title = forms.CharField(max_length=30, required=False, help_text='Optional.')
-	content = forms.EmailField(max_length=254, help_text='Enter Meeting Details')
-	date_time = widgets.AdminSplitDateTime()
-	
-	class Meta:
-          model = Post
-          fields = ('title','content','date_time')
-'''
-
 class PostForm(forms.ModelForm):
 
     class Meta:

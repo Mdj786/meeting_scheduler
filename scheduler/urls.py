@@ -6,6 +6,8 @@ from django.contrib.auth import views as auth_views
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as django_logout
+from django.views.generic import TemplateView
+
 #from django.contrib.auth.views import logout
 #from django.contrib.auth import logout
 
@@ -22,6 +24,10 @@ urlpatterns = [
     path('post/', views.post, name='post'),
     path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
     path('delete_post/<int:pk>/', views.delete_post, name='delete_post'),
+    path('firebase-messaging-sw.js', (TemplateView.as_view(template_name="firebase-messaging-sw.js", content_type='application/javascript', )), 		  name='firebase-messaging-sw.js'),
+    path('get_reg_token/',views.get_reg_token, name='get_reg_token'),
+
+
 
 
     

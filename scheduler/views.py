@@ -11,42 +11,37 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as django_logout
 from django.core.mail import send_mail
 import datetime
-from .tasks import SignUpTask
+from .tasks import SignUpTask, NotificationTask
 import dateutil.parser
 from celery import uuid
 from celery.task.control import revoke
 from django.conf import settings
 from datetime import datetime as dtime
 import pytz 
-
-
-#from .tasks import run
-# Create your views here.
-
+import firebase_admin
+from firebase_admin import messaging
+from firebase_admin import credentials
+from pyfcm import FCMNotification
+import json
 import pyrebase
+
+
 config = {
-	'apiKey': "AIzaSyD7nDAycSZPQKBYFvlA4KSQj0SebQtm_5c",
-    'authDomain': "scheduler-3f833.firebaseapp.com",
-    'databaseURL': "https://scheduler-3f833.firebaseio.com",
-    'projectId': "scheduler-3f833",
-    'storageBucket': "scheduler-3f833.appspot.com",
-    'messagingSenderId': "826211709812"
+	'apiKey': "<Your apikey>",
+    'authDomain': "<Your authDomain>",
+    'databaseURL': "<Your databaseURL>",
+    'projectId': "<Your porjectId>",
+    'storageBucket': "<Your storageBucket>",
+    'messagingSenderId': "<Your messagingSenderId>"
 }
 firebase = pyrebase.initialize_app(config)
-#auth = firebase.auth()
 database=firebase.database()
-
-#increment = 1
 
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
-            #username = form.cleaned_data.get('username')
-            #raw_password = form.cleaned_data.get('password1')
-            #user = authenticate(username=username, password=raw_password)
-            #login(request, user)
             return redirect('login')
     else:
         form = SignUpForm()
@@ -66,7 +61,7 @@ def post(request):
         text  = request.POST.get('text', '')
         
         temp = request.POST.get('date_time', '')
-        
+        #usr_title = title
         z = dateutil.parser.parse(temp)
         
         new_date_time = z - datetime.timedelta(minutes=30)
@@ -88,7 +83,10 @@ def post(request):
         
         w_ten = datetime_in_utc_ten.strftime('%Y-%m-%d %H:%M:%S')
         
-        print(w)
+        #print(w)
+        
+   
+        usr_title = title
         
         if w > current_utc_time:
         	time_check = 1
@@ -96,7 +94,7 @@ def post(request):
         if w_ten > current_utc_time:
         	time_check_ten = 1
         
-        
+        #print(reg_token)
 		
         y = w.split(' ')
         
@@ -104,6 +102,10 @@ def post(request):
 
         new_time = y[0] + 'T' + y[1]
         new_time_ten = y_ten[0] + 'T' + y_ten[1]
+        
+        global notif_time, notif_time_ten
+        notif_time = new_time
+        notif_time_ten = new_time_ten
 		
         email = request.user.email
 		
@@ -114,30 +116,33 @@ def post(request):
         post_obj = Post(author=me, title=title, text=text, date_time=date_time,task_id=task_id)
         post_obj.save()
         pk=post_obj.pk
+        
+        global t_check, t_check_ten
+        t_check = 0
+        t_check_ten = 0
 		
         if time_check == 1:
         	SignUpTask.apply_async((pk,),eta=new_time,task_id=task_id)
+        	t_check = 1
         if time_check_ten == 1:
             SignUpTask.apply_async((pk,),eta=new_time_ten,task_id=task_id)
+            t_check_ten = 1
      
         post_obj.publish()
         
+        global notif_pk
+        notif_pk = pk
+        
         
         fire_base ={'user':request.user.email,'title': title, 'text': text, 'date_time': temp }
-        
-        #node = str(request.user.email) + str(title) + str(temp)
-        
-        database.child(str(pk)).push(fire_base)
-        
-        #increment = increment + 1
-        
+        database.child(str(pk)).push(fire_base)        
+                     
     return redirect('post_list')     
     
 @login_required
 def post_list(request):
-	#posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
-	posts = Post.objects.filter(author=request.user)
-	return render(request, 'scheduler/post_list.html', {'posts' : posts})
+    posts = Post.objects.filter(author=request.user)
+    return render(request, 'scheduler/post_list.html', {'posts' : posts})
 	
 @login_required
 def post_detail(request, pk):
@@ -219,13 +224,27 @@ def post_edit(request, pk):
         	    SignUpTask.apply_async((pk,),eta=new_time_ten,task_id=task_id)
             
             
-            fire_base ={'user':request.user.email,'title': post.title, 'text': post.text, 'date_time': temp }
-        
+            fire_base ={'user':request.user.email,'title': post.title, 'text': post.text, 'date_time': temp }        
             database.child(str(pk)).set(fire_base)          	
             
             return redirect('post_list')
     else:
+    
         form = PostForm(instance=post)
+    
+    
     return render(request, 'scheduler/post_edit.html', {'form': form})
 
+def get_reg_token(request):
 
+	post_obj = Post.objects.get(pk=notif_pk)
+	
+	x = json.loads(request.body)
+	reg_token = x['reg_token']
+	post_obj.device_id = reg_token
+	
+	post_obj.save()
+	
+	#print(x['reg_token'])
+			
+	return redirect('post_list')     	

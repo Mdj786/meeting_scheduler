@@ -1,58 +1,155 @@
+
+
 {% include 'session_security/all.html' %}
 {% load staticfiles %}
 <html>
    <head>
+      <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
       <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
       <link href="//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext" rel="stylesheet" type="text/css">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-               <link href="{% static 'css/post_list.css' %}" rel="stylesheet" crossorigin="anonymous">
-
-      <title>Schedule</title>
-   </head>
+      <link href="{% static 'css/post_list.css' %}" rel="stylesheet" crossorigin="anonymous">
    <body>
-      <div class="bodyy">
-         <span class="inline"><b>Logged in as: {{request.user.email}}</b></span>
-         <span class="inline" id="logout">
-         <button type="button" class="btn btn-default btn-sm" onclick="location.href='{% url 'logout' %}'">
-         <span class="glyphicon glyphicon-log-out"></span> Log out
-         </button>
-         </span>
-      </div>
-      <div id="body">
-      <div class="page-header">
-         <h1 align="center"><u>Schedule</u></h1>
-      </div>
-      <div>
-         <div class="button1">
-            <button type="button" class="btn btn-default btn-sm"onclick="location.href='{% url 'new_post' %}'">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add Event
+      <div id="token"></div>
+      <div id="msg"></div>
+      <div id="notis"></div>
+      <div id="err"></div>
+      <script src="https://www.gstatic.com/firebasejs/4.6.2/firebase.js"></script>
+      <script>
+         function getCookie(name) {
+           var cookieValue = null;
+           if (document.cookie && document.cookie != '') {
+               var cookies = document.cookie.split(';');
+               for (var i = 0; i < cookies.length; i++) {
+                   var cookie = jQuery.trim(cookies[i]);
+                   // Does this cookie string begin with the name we want?
+                   if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                       cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                       break;
+                   }
+               }
+           }
+           return cookieValue;
+          }
+          
+          var csrftoken = getCookie('csrftoken');
+          var reg_token = 'xxx'
+           MsgElem = document.getElementById("msg")
+           TokenElem = document.getElementById("token")
+           NotisElem = document.getElementById("notis")
+           ErrElem = document.getElementById("err")
+           // Initialize Firebase
+           // TODO: Replace with your project's customized code snippet
+           var config = {
+              apiKey: "<Your apikey>",
+          authDomain: "<Your authDomain>",
+          databaseURL: "<Your databaseURL>",
+          projectId: "<Your porjectId>",
+          storageBucket: "<Your storageBucket>",
+          messagingSenderId: "<Your messagingSenderId>"
+           };
+           firebase.initializeApp(config);
+           const messaging = firebase.messaging();
+           messaging
+               .requestPermission()
+               .then(function () {
+                   console.log("Notification permission granted.");
+                   
+                   // get the token in the form of promise
+                   return messaging.getToken()
+               })
+               .then(function(token) {
+                   console.log("token is: ", token)
+                   document.getElementById('reg_token').value = token;
+
+          		  
+           			$.ajax({
+          				url:'/get_reg_token/',
+          				type: "POST",
+          				processData: false,
+         
+          				beforeSend : function(jqXHR, settings) {
+           							jqXHR.setRequestHeader("x-csrftoken", csrftoken);
+          				},
+          				data: JSON.stringify({'reg_token':token}),
+          				success:function(json){
+          				console.log(reg_token)
+          				},
+          				complete:function(){
+          
+         				 },
+         				 error:function (xhr, textStatus, thrownError){
+          
+          				}
+          			});
+           
+               })
+               .catch(function (err) {
+                   /*ErrElem.innerHTML =  ErrElem.innerHTML + "; " + err*/
+                   console.log("Unable to get permission to notify.", err);
+               });
+           messaging.onMessage(function(payload) {
+               console.log("Message received. ", payload);
+               /*NotisElem.innerHTML = NotisElem.innerHTML + JSON.stringify(payload) */
+           });	
+           
+           
+           
+           
+          
+         
+           
+      </script>
+      <title>Schedule</title>
+      </head>
+      <body>
+         <div class="bodyy">
+            <span class="inline"><b>Logged in as: {{request.user.email}}</b></span>
+            <span class="inline" id="logout">
+            <button type="button" class="btn btn-default btn-sm" onclick="location.href='{% url 'logout' %}'">
+            <span class="glyphicon glyphicon-log-out"></span> Log out
             </button>
+            </span>
          </div>
-         <div class="table table-bordered table-condensed border">
-            <table class="table">
-               <col width="250">
-               <tr>
-                  <th align="right">Date/Time</th>
-                  <th align="right">Event</th>
-                  <th align="right">Details</th>
-                  <th style="text-align:center">Edit</th>
-                  <th style="text-align:center">Delete</th>
-               </tr>
-               {% for post in posts %}
-               <tr>
-                  <td>{{ post.date_time }}</td>
-                  <td class="event_text"><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></td>
-                  <td class="event_text">{{ post.text|linebreaksbr }}</td>
-                  <td align="center"><a href="{% url 'post_edit' pk=post.pk %}"><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></button></a></td>
-                  <td align="center"><a href="{% url 'delete_post' pk=post.pk %}"><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></button></a></td>
-               <tr>
-                  {% endfor %}
-            </table>
+         <div id="body">
+            <div class="page-header">
+               <u><h1 align="center">Schedule</h1></u>
+            </div>
+            <div>
+               <div class="button1">
+                  <button type="button" class="btn btn-default btn-sm"onclick="location.href='{% url 'new_post' %}'">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add Event
+                  </button>
+               </div>
+               <div class="table table-bordered table-condensed border">
+                  <table class="table">
+                     <col width="250">
+                     <tr>
+                        <th align="right">Date/Time</th>
+                        <th align="right">Event</th>
+                        <th align="right">Details</th>
+                        <th style="text-align:center">Edit</th>
+                        <th style="text-align:center">Delete</th>
+                     </tr>
+                     <input type="hidden" name="reg_token" id="reg_token" />
+                     {% for post in posts %}
+                     <tr>
+                        <td>{{ post.date_time }}</td>
+                        <td class="event_text"><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></td>
+                        <td class="event_text">{{ post.text|linebreaksbr }}</td>
+                        <td align="center"><a href="{% url 'post_edit' pk=post.pk %}"><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></button></a></td>
+                        <td align="center"><a href="{% url 'delete_post' pk=post.pk %}"><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></button></a></td>
+                     <tr>
+                        {% endfor %}
+                  </table>
+               </div>
+            </div>
          </div>
-      </div>
-      </div>
    </body>
+   <script></script>
 </html>
+
+

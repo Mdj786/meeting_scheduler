@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'djcelery',
     'crispy_forms',
     'session_security',
+    'fcm_django',
 
 ]
 
@@ -142,9 +143,9 @@ CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
 
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = '<your_email'
-EMAIL_HOST_PASSWORD = '<your_password>'
+EMAIL_HOST = '<Your Host>'
+EMAIL_HOST_USER = '<Your Email ID>'
+EMAIL_HOST_PASSWORD = '<Your Password>'
 EMAIL_PORT = 587
 
 REDIS_HOST = 'localhost'
@@ -163,6 +164,12 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 
 SESSION_SECURITY_WARN_AFTER = 60
-SESSION_SECURITY_EXPIRE_AFTER = 300
+SESSION_SECURITY_EXPIRE_AFTER = 600
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+FCM_DJANGO_SETTINGS = { 
+    "FCM_SERVER_KEY": "<Add your Firebase Cloud Messagin server key here>",
+    "ONE_DEVICE_PER_USER": False,
+    "DELETE_INACTIVE_DEVICES": False, 
+ }
 

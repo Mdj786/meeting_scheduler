@@ -31,6 +31,7 @@ class Post(models.Model):
     text = models.TextField(blank=False, null=False)
     date_time = models.DateTimeField()
     task_id = models.UUIDField(editable=False, default=uuid.uuid4)
+    device_id = models.CharField(max_length=300,default='0000')
     
     #created_date = models.DateTimeField(default=timezone.now)
     published_date = models.DateTimeField(blank=True, null=True)
